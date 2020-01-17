@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import ReactMapGL from 'react-map-gl';
+import ReactMapGL, { GeolocateControl } from 'react-map-gl';
 
 interface MapProps {}
 
 export const Map = (props: MapProps) => {
 
-  const [viewport, setViewPort ] = useState({
+  const [viewport, setViewPort] = useState({
     width: '100%',
     height: 900,
     // The 6ix
@@ -19,9 +19,18 @@ export const Map = (props: MapProps) => {
   return (
     <ReactMapGL
       {...viewport}
-      mapStyle="mapbox://styles/mapbox/dark-v8"
-      onViewportChange={_onViewportChange}
+      mapStyle={styleDark}
+      onViewportChange={(viewport: any) => setViewPort({...viewport, transitionDuration: 3000 })}
       mapboxApiAccessToken={accessToken}
-    />
+    >
+      <GeolocateControl
+        style={{
+          float: 'left',
+          margin: '50px',
+          padding: '10px',
+        }}
+        positionOptions={{enableHighAccuracy: true}}
+        trackUserLocation={true}
+      />
   );
 }
