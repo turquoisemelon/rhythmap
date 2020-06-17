@@ -3,6 +3,8 @@ import ReactMapGL, { GeolocateControl } from 'react-map-gl';
 
 interface MapProps {}
 
+const mapboxApiAccessToken = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
+
 export const Map = (props: MapProps) => {
 
   const [viewport, setViewPort] = useState({
@@ -16,12 +18,17 @@ export const Map = (props: MapProps) => {
 
   const _onViewportChange = (viewport: any) => setViewPort({...viewport, transitionDuration: 3000 })
 
+  const styleDecimal = "mapbox://styles/turquoisemel/ck579y5pz04rs1cqxj2ao7zgx";
+  const styleMoonlight = "mapbox://styles/turquoisemel/ck2wc23g21huw1cmm7fr8ckt1";
+  const styleDark = "mapbox://styles/mapbox/dark-v9";
+  const styleStreet = "mapbox://styles/mapbox/streets-v11";
+
   return (
     <ReactMapGL
       {...viewport}
       mapStyle={styleDark}
-      onViewportChange={(viewport: any) => setViewPort({...viewport, transitionDuration: 3000 })}
-      mapboxApiAccessToken={accessToken}
+      onViewportChange={_onViewportChange}
+      mapboxApiAccessToken={mapboxApiAccessToken}
     >
       <GeolocateControl
         style={{
@@ -32,5 +39,6 @@ export const Map = (props: MapProps) => {
         positionOptions={{enableHighAccuracy: true}}
         trackUserLocation={true}
       />
+    </ReactMapGL>
   );
 }
