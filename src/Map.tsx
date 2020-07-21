@@ -1,18 +1,23 @@
 import React, { useState } from 'react';
 import ReactMapGL, { GeolocateControl } from 'react-map-gl';
 
-interface MapProps {}
+interface MapProps {
+  metroAreaCoordinates: {
+    latitude: number,
+    longitude: number
+  }
+}
 
 const mapboxApiAccessToken = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
 
-export const Map = (props: MapProps) => {
+export const Map = ({ metroAreaCoordinates }: MapProps) => {
 
   const [viewport, setViewPort] = useState({
-    width: '100%',
-    height: 900,
+    width:"100vw",
+    height:"100vh",
     // The 6ix
-    latitude: 43.651070,
-    longitude: -79.347015,
+    latitude: metroAreaCoordinates.latitude,
+    longitude: metroAreaCoordinates.longitude,
     zoom: 9
   })
 
