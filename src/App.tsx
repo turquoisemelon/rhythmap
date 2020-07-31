@@ -1,8 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import { gql, useQuery } from '@apollo/client';
 import './App.css';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 import { Map } from './Map';
+
+type AppProps = {
+  query?: String;
+}
 
 const metroAreas = {
   Toronto: {
@@ -16,7 +21,7 @@ const CANADA = "Canada";
 
 const SONGKICK_API_KEY = process.env.REACT_APP_SONGKICK_ACCESS_TOKEN;
 
-const App: React.FC = () => {
+const App: React.FC<AppProps> = ({ query = TORONTO }) => {
   const [metroAreaCoordinates, setMetroAreaCoordinates] = useState({
     latitude: metroAreas.Toronto.latitude,
     longitude: metroAreas.Toronto.longitude,
@@ -24,27 +29,30 @@ const App: React.FC = () => {
 
   const [metroAreaId, setMetroAreaId] = useState(null);
 
-  const locationSearchApiRequestUrl = `https://api.songkick.com/api/3.0/search/locations.json?query=${TORONTO}&apikey=${SONGKICK_API_KEY}`;
-  const eventsByMetroAreaApiRequestUrl = `https://api.songkick.com/api/3.0/metro_areas/${metroAreaId}/calendar.json?apikey=${SONGKICK_API_KEY}`;
+  const GET_EVENTS_BY_METRO_AREA = gql`
+    query getMetroAreaID($query: String!, $apiKey: String!) {
+      eventsPerArea(query: $query, apiKey: "${SONGKICK_API_KEY}") @rest(type: "EventsPerArea", path: "search/locations.json?query={args.query}&apikey={args.apiKey}") {
+        location {
+          metroArea {
+            id @export(as: "id")
+            displayName
+            country
+            lng
+            lat
+            events (apiKey: "${SONGKICK_API_KEY}") @rest(type: "Events", path: "metro_areas/{exportVariables.id}/calendar.json?apikey={args.apiKey}") {
+              event
+            }
+          }
+        }
+      }
+    }
+  `;
 
-  useEffect(() => {
-    fetch(locationSearchApiRequestUrl)
-    .then(response => response.json())
-    .then(data => {
-      const metroAreaObject = data.resultsPage.results.location.filter((location: any) => location.metroArea.displayName === TORONTO && location.metroArea.country.displayName === CANADA)[0].metroArea;
-      setMetroAreaId(metroAreaObject.id);
-      setMetroAreaCoordinates({
-        latitude: metroAreaObject.latitude,
-        longitude: metroAreaObject.longitude
-      })
-    })
-  }, [locationSearchApiRequestUrl]);
+  const { loading, error, data } = useQuery(GET_EVENTS_BY_METRO_AREA, {
+    variables: { query }
+  });
 
-  useEffect(() => {
-    fetch(eventsByMetroAreaApiRequestUrl)
-    .then(response => response.json())
-    .then(data => console.log(data.resultsPage))
-  }, [eventsByMetroAreaApiRequestUrl])
+  console.log('data graphql', data)
 
   return (
     <div className="App">
