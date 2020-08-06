@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import ReactMapGL, { GeolocateControl } from 'react-map-gl';
 import { gql, useQuery } from '@apollo/client';
+import { Markers } from './Markers';
 
 interface MapProps {}
 
@@ -11,16 +12,17 @@ export const Map = () => {
   const [viewport, setViewPort] = useState({
     width:"100vw",
     height:"100vh",
-    // The 6ix
-    latitude: 38.78,
-    longitude: -122.45,
-    zoom: 9
+    // San Franscisco
+    latitude: 37.7749,
+    longitude: -122.4194,
+    zoom: 12
   })
 
   const GET_EVENTS_BY_METRO_AREA = gql`
   query getMetroAreaID($lat: Float!, $lng: Float!, $apiKey: String!) {
     eventsPerArea(lat: $lat, lng: $lng, apiKey: "${SONGKICK_API_KEY}") @rest(type: "EventsPerArea", path: "search/locations.json?location=geo%3A{args.lat}%2C{args.lng}&apikey={args.apiKey}") {
       location {
+        city
         metroArea {
           id @export(as: "id")
           displayName
@@ -47,8 +49,17 @@ export const Map = () => {
     variables: { lat: viewport.latitude, lng: viewport.longitude }
   });
 
-  console.log('data graphql', data)
-  console.log('viewport', viewport)
+  console.log('data graphql', data && data.eventsPerArea.location && data.eventsPerArea.location )
+  console.log('data', data)
+  
+  if (loading) {
+    return <h4>Loading...</h4>;
+  }
+  if (error) {
+    return <h4>{error.message}</h4>;
+  }
+
+  const eventsData = data && data.eventsPerArea.location && data.eventsPerArea.location[0] && data.eventsPerArea.location[0].metroArea && data.eventsPerArea.location[0].metroArea.events && data.eventsPerArea.location[0].metroArea.events.event;
 
   return (
     <ReactMapGL
@@ -67,6 +78,7 @@ export const Map = () => {
         trackUserLocation={true}
         showUserLocation={true}
       />
+      {eventsData && <Markers events={eventsData || []} />}
     </ReactMapGL>
   );
 }
